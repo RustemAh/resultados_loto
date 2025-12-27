@@ -1,0 +1,132 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+/* ===============================
+   BANNER
+=============================== */
+.banner-oficial {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 25px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #0b4aa6, #003b8e);
+  color: #fff;
+  text-align: center;
+}
+
+.banner-top {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.badge {
+  background: #ffd400;
+  color: #003b8e;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.banner-monto .monto {
+  font-size: 64px;
+  font-weight: bold;
+}
+
+.banner-monto .millones {
+  font-size: 32px;
+  margin-left: 6px;
+}
+
+/* ===============================
+   SELECTORES
+=============================== */
+.buscador {
+  text-align: center;
+  padding: 15px;
+}
+
+.buscador select {
+  padding: 10px;
+  font-size: 14px;
+  margin: 5px;
+  min-width: 180px;
+}
+
+/* ===============================
+   RESULTADOS
+=============================== */
+.card {
+  background: #ffffff;
+  max-width: 750px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+h2 {
+  margin: 0;
+}
+
+h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+/* ===============================
+   LOGOS
+=============================== */
+h3 img {
+  height: 28px;
+  width: auto;
+  max-width: 70px;
+  object-fit: contain;
+}
+
+/* ===============================
+   BOLAS
+=============================== */
+.bolas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.bola {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ffd400;
+  color: #003b8e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border: 2px solid #003b8e;
+}
+
+/* ===============================
+   JUGADAS JUBILAZO
+=============================== */
+.jugadas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+footer {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  padding: 20px;
+}
