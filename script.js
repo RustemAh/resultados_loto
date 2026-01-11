@@ -276,5 +276,34 @@ function renderBannerSinDatos(sorteo) {
 }
 
 // ===============================
-//
+// EMBED
+// ===============================
+function actualizarEmbed(sorteo) {
+  const base = `${location.origin}${location.pathname}`;
+  const src = `${base}?sorteo=${encodeURIComponent(sorteo)}&embed=1`;
+
+  embedCode.value =
+`<iframe
+  src="${src}"
+  width="100%"
+  height="700"
+  style="border:0;border-radius:12px;overflow:hidden"
+  loading="lazy"
+  referrerpolicy="no-referrer-when-downgrade"
+></iframe>`;
+
+  btnEmbed.disabled = false;
+  btnEmbed.textContent = "Mostrar embed";
+  embedBox.hidden = true; // queda cerrado hasta que el usuario lo abra
+}
+
+function activarModoEmbed() {
+  const footer = document.querySelector("footer");
+  if (footer) footer.style.display = "none";
+
+  // Oculta UI de embed dentro del iframe (solo resultados)
+  if (btnEmbed) btnEmbed.style.display = "none";
+  if (embedBox) embedBox.style.display = "none";
+  if (hint) hint.style.display = "none";
+}
 
