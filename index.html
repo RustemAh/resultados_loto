@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Resultados LOTO Chile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Resultados del Loto Chile. Consulta sorteos, fechas y números ganadores. Sitio informativo." />
+  <meta name="description" content="Resultados del Loto Chile. Consulta por sorteo usando la URL. Sitio informativo." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,7 +12,7 @@
   <section class="banner-oficial">
     <div class="banner-top">
       <span class="badge">Loto</span>
-      <span id="bannerTexto">Próximo Sorteo</span>
+      <span id="bannerTexto">Selecciona un sorteo</span>
     </div>
 
     <div class="banner-monto">
@@ -23,32 +23,26 @@
     <p class="banner-descripcion">
       Resultados oficiales del Loto de Polla Chilena de Beneficencia
     </p>
+
+    <!-- Botón embed -->
+    <button id="btnEmbed" type="button" disabled>
+      Mostrar embed
+    </button>
   </section>
 
-  <section class="buscador">
-    <label for="selectSorteo" class="sr-only">Selecciona sorteo</label>
-    <select id="selectSorteo">
-      <option value="">Selecciona sorteo</option>
-    </select>
-
-    <label for="selectFecha" class="sr-only">Selecciona fecha</label>
-    <select id="selectFecha">
-      <option value="">Selecciona fecha</option>
-    </select>
-
-    <label for="inputSorteo" class="sr-only">Ingresar sorteo</label>
-    <input id="inputSorteo" type="number" inputmode="numeric" placeholder="Ingresar sorteo (ej: 5200)" />
-    <button id="btnBuscar" type="button">Buscar</button>
-  </section>
-
+  <!-- Caja embed (oculta por defecto) -->
   <section class="embed" id="embedBox" hidden>
-    <p><strong>Código embed (iframe) del sorteo seleccionado:</strong></p>
+    <p class="embed-title"><strong>Código embed (iframe):</strong></p>
     <textarea id="embedCode" readonly></textarea>
-    <button id="copyEmbed" type="button">Copiar</button>
+
+    <div class="embed-actions">
+      <button id="copyEmbed" type="button">Copiar</button>
+    </div>
   </section>
 
   <p class="hint" id="hint">
-    Selecciona o ingresa un sorteo para ver resultados.
+    Para ver resultados, abre con <code>?sorteo=XXXX</code>.
+    Ejemplo: <code>?sorteo=5200</code>
   </p>
 
   <main id="resultados"></main>
@@ -62,4 +56,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
