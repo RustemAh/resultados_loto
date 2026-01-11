@@ -19,20 +19,36 @@ const DISPLAY_NAME = {
 // DOM
 // ===============================
 const contenedor = document.getElementById("resultados");
-const selectSorteo = document.getElementById("selectSorteo");
-const selectFecha = document.getElementById("selectFecha");
 const bannerTexto = document.getElementById("bannerTexto");
 const bannerMonto = document.getElementById("bannerMonto");
 
-const inputSorteo = document.getElementById("inputSorteo");
-const btnBuscar = document.getElementById("btnBuscar");
-
+const btnEmbed = document.getElementById("btnEmbed");
 const embedBox = document.getElementById("embedBox");
 const embedCode = document.getElementById("embedCode");
 const copyEmbed = document.getElementById("copyEmbed");
 const hint = document.getElementById("hint");
 
 let ALL_DATA = [];
+
+// ===============================
+// EVENTOS UI (EMBED)
+// ===============================
+btnEmbed?.addEventListener("click", () => {
+  const visible = !embedBox.hidden;
+  embedBox.hidden = visible;
+  btnEmbed.textContent = visible ? "Mostrar embed" : "Ocultar embed";
+});
+
+copyEmbed?.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(embedCode.value);
+    copyEmbed.textContent = "Copiado ✅";
+    setTimeout(() => (copyEmbed.textContent = "Copiar"), 1200);
+  } catch {
+    embedCode.focus();
+    embedCode.select();
+  }
+});
 
 // ===============================
 // FETCH
@@ -95,14 +111,12 @@ fetch(URL)
       return;
     }
 
-    cargarSelectores(ALL_DATA);
-
-    // ❌ Ya no renderizamos el primer sorteo automáticamente
+    // ❌ No mostrar el primer sorteo por defecto
     contenedor.innerHTML = "";
     embedBox.hidden = true;
-    if (hint) hint.style.display = "block";
+    btnEmbed.disabled = true;
+    btnEmbed.textContent = "Mostrar embed";
 
-    // Soporte para embed: ?sorteo=XXXX&embed=1
     const params = new URLSearchParams(location.search);
     const sorteoParam = params.get("sorteo");
     const embedMode = params.get("embed") === "1";
@@ -111,9 +125,12 @@ fetch(URL)
 
     if (sorteoParam) {
       mostrarPorSorteo(sorteoParam);
-      // sincroniza input/select visualmente si existe
-      if (inputSorteo) inputSorteo.value = sorteoParam;
-      if (selectSorteo) selectSorteo.value = sorteoParam;
+      if (hint) hint.style.display = "none";
+    } else {
+      // Sin sorteo: solo hint
+      if (hint) hint.style.display = "block";
+      bannerTexto.textContent = "Selecciona un sorteo";
+      bannerMonto.textContent = "$0";
     }
   })
   .catch(err => {
@@ -122,90 +139,21 @@ fetch(URL)
   });
 
 // ===============================
-// EVENTOS
-// ===============================
-selectSorteo.addEventListener("change", () => {
-  const val = selectSorteo.value;
-  if (!val) return limpiarVista();
-  mostrarPorSorteo(val);
-  if (inputSorteo) inputSorteo.value = val;
-});
-
-selectFecha.addEventListener("change", () => {
-  const fecha = selectFecha.value;
-  if (!fecha) return limpiarVista();
-
-  const items = ALL_DATA.filter(x => x.fecha === fecha);
-  if (!items.length) return;
-
-  // si hay varios sorteos en esa fecha, muestra todos
-  render(items);
-  renderBanner(items[0]);
-  if (hint) hint.style.display = "none";
-
-  // sincroniza sorteo al más reciente de esa fecha
-  selectSorteo.value = items[0].sorteo;
-  if (inputSorteo) inputSorteo.value = items[0].sorteo;
-
-  // embed del primero (más reciente) de esa fecha
-  actualizarEmbed(items[0].sorteo);
-});
-
-btnBuscar?.addEventListener("click", () => {
-  const val = (inputSorteo?.value || "").trim();
-  if (!val) return;
-  mostrarPorSorteo(val);
-  selectSorteo.value = val; // aunque no exista en select, no pasa nada
-});
-
-inputSorteo?.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") btnBuscar?.click();
-});
-
-copyEmbed?.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(embedCode.value);
-    copyEmbed.textContent = "Copiado ✅";
-    setTimeout(() => (copyEmbed.textContent = "Copiar"), 1200);
-  } catch {
-    // fallback: seleccionar texto
-    embedCode.focus();
-    embedCode.select();
-  }
-});
-
-// ===============================
 // LÓGICA PRINCIPAL
 // ===============================
 function mostrarPorSorteo(sorteo) {
-  const item = ALL_DATA.find(x => x.sorteo === String(sorteo));
-
-  if (hint) hint.style.display = "none";
+  const sId = String(sorteo).trim();
+  const item = ALL_DATA.find(x => x.sorteo === sId);
 
   if (item) {
     render([item]);
     renderBanner(item);
-
-    // sincroniza fecha
-    if (selectFecha) selectFecha.value = item.fecha;
-
     actualizarEmbed(item.sorteo);
   } else {
-    // ✅ No hay datos: mostrar mensaje solicitado
-    renderSinDatos(sorteo);
-    renderBannerSinDatos(sorteo);
-
-    actualizarEmbed(String(sorteo)); // igual generamos embed para ese sorteo
+    renderSinDatos(sId);
+    renderBannerSinDatos(sId);
+    actualizarEmbed(sId);
   }
-}
-
-function limpiarVista() {
-  contenedor.innerHTML = "";
-  embedBox.hidden = true;
-  if (hint) hint.style.display = "block";
-  // opcional: reset de banner
-  bannerTexto.textContent = "Próximo Sorteo";
-  bannerMonto.textContent = "$0";
 }
 
 // ===============================
@@ -310,26 +258,12 @@ function renderSinDatos(sorteo) {
 }
 
 // ===============================
-// SELECTORES
-// ===============================
-function cargarSelectores(data) {
-  const sorteos = [...new Set(data.map(x => x.sorteo))];
-  const fechas = [...new Set(data.map(x => x.fecha))];
-
-  selectSorteo.innerHTML = `<option value="">Selecciona sorteo</option>` +
-    sorteos.map(s => `<option value="${s}">${s}</option>`).join("");
-
-  selectFecha.innerHTML = `<option value="">Selecciona fecha</option>` +
-    fechas.map(f => `<option value="${f}">${f}</option>`).join("");
-}
-
-// ===============================
 // BANNER
 // ===============================
 function renderBanner(s) {
   bannerTexto.textContent = `Próximo Sorteo N° ${Number(s.sorteo) + 1}`;
 
-  // si viene en pesos grandes, convierto a millones
+  // Si viene en pesos grandes, convierto a millones (heurística)
   const monto = s.monto || 0;
   const enMillones = monto >= 1_000_000 ? Math.round(monto / 1_000_000) : monto;
 
@@ -342,32 +276,5 @@ function renderBannerSinDatos(sorteo) {
 }
 
 // ===============================
-// EMBED
-// ===============================
-function actualizarEmbed(sorteo) {
-  // Genera iframe apuntando a esta misma página en modo embed
-  const base = `${location.origin}${location.pathname}`;
-  const src = `${base}?sorteo=${encodeURIComponent(sorteo)}&embed=1`;
-
-  embedCode.value =
-`<iframe
-  src="${src}"
-  width="100%"
-  height="700"
-  style="border:0;border-radius:12px;overflow:hidden"
-  loading="lazy"
-  referrerpolicy="no-referrer-when-downgrade"
-></iframe>`;
-
-  embedBox.hidden = false;
-}
-
-function activarModoEmbed() {
-  // oculta buscador/footer/hint para que se vea limpio dentro del iframe
-  const buscador = document.querySelector(".buscador");
-  const footer = document.querySelector("footer");
-  if (buscador) buscador.style.display = "none";
-  if (footer) footer.style.display = "none";
-  if (hint) hint.style.display = "none";
-}
+//
 
