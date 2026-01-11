@@ -306,4 +306,3 @@ function activarModoEmbed() {
   if (embedBox) embedBox.style.display = "none";
   if (hint) hint.style.display = "none";
 }
-
