@@ -4,44 +4,62 @@
   <meta charset="UTF-8" />
   <title>Resultados LOTO Chile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Resultados del Loto Chile. Consulta sorteos, fechas y números ganadores. Sitio informativo." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<section class="banner-oficial">
-  <div class="banner-top">
-    <span class="badge">Loto</span>
-    <span id="bannerTexto">Próximo Sorteo</span>
-  </div>
+  <section class="banner-oficial">
+    <div class="banner-top">
+      <span class="badge">Loto</span>
+      <span id="bannerTexto">Próximo Sorteo</span>
+    </div>
 
-  <div class="banner-monto">
-    <span class="monto" id="bannerMonto">$0</span>
-    <span class="millones">Millones</span>
-  </div>
+    <div class="banner-monto">
+      <span class="monto" id="bannerMonto">$0</span>
+      <span class="millones">Millones</span>
+    </div>
 
-  <p class="banner-descripcion">
-    Resultados oficiales del Loto de Polla Chilena de Beneficencia
+    <p class="banner-descripcion">
+      Resultados oficiales del Loto de Polla Chilena de Beneficencia
+    </p>
+  </section>
+
+  <section class="buscador">
+    <label for="selectSorteo" class="sr-only">Selecciona sorteo</label>
+    <select id="selectSorteo">
+      <option value="">Selecciona sorteo</option>
+    </select>
+
+    <label for="selectFecha" class="sr-only">Selecciona fecha</label>
+    <select id="selectFecha">
+      <option value="">Selecciona fecha</option>
+    </select>
+
+    <label for="inputSorteo" class="sr-only">Ingresar sorteo</label>
+    <input id="inputSorteo" type="number" inputmode="numeric" placeholder="Ingresar sorteo (ej: 5200)" />
+    <button id="btnBuscar" type="button">Buscar</button>
+  </section>
+
+  <section class="embed" id="embedBox" hidden>
+    <p><strong>Código embed (iframe) del sorteo seleccionado:</strong></p>
+    <textarea id="embedCode" readonly></textarea>
+    <button id="copyEmbed" type="button">Copiar</button>
+  </section>
+
+  <p class="hint" id="hint">
+    Selecciona o ingresa un sorteo para ver resultados.
   </p>
-</section>
 
-<section class="buscador">
-  <select id="selectSorteo">
-    <option value="">Selecciona sorteo</option>
-  </select>
+  <main id="resultados"></main>
 
-  <select id="selectFecha">
-    <option value="">Selecciona fecha</option>
-  </select>
-</section>
+  <footer>
+    <p>
+      ADVERTENCIA: Este sitio es solo informativo. Los resultados oficiales son los entregados por Polla Chilena de Beneficencia.
+    </p>
+  </footer>
 
-<main id="resultados"></main>
-
-<footer>
-  <p>
-    ADVERTENCIA: Este sitio es solo informativo. Los resultados oficiales son los entregados por Polla Chilena de Beneficencia.
-  </p>
-</footer>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
+
