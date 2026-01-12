@@ -261,6 +261,58 @@ footer {
 .quick-sorteos button:hover{
   background: rgba(255,255,255,0.28);
 }
+/* ===============================
+   BUSCADOR (alineación selects + botón)
+=============================== */
+.buscador{
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 15px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.buscador select,
+.buscador button{
+  height: 42px;              /* misma altura */
+  padding: 0 14px;           /* mismo padding */
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+.buscador select{
+  min-width: 180px;
+  border: 1px solid #cfd6df;
+  background: #fff;
+}
+
+.buscador button{
+  border: 0;
+  background: #ffd400;
+  color: #003b8e;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;       /* centra texto vertical */
+  align-items: center;
+  justify-content: center;
+}
+
+.buscador button:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* en pantallas chicas, que ocupen todo el ancho bonito */
+@media (max-width: 520px){
+  .buscador select,
+  .buscador button{
+    width: min(320px, 95vw);
+  }
+}
+
 
 
 
