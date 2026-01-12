@@ -1,3 +1,5 @@
+// script.js (FINAL - sin buscador, selección por botones o por URL, embed como botón, sin mostrar primer sorteo)
+
 // ===============================
 // CONFIGURACIÓN
 // ===============================
@@ -26,12 +28,14 @@ const btnEmbed = document.getElementById("btnEmbed");
 const embedBox = document.getElementById("embedBox");
 const embedCode = document.getElementById("embedCode");
 const copyEmbed = document.getElementById("copyEmbed");
+
+const quickSorteos = document.getElementById("quickSorteos");
 const hint = document.getElementById("hint");
 
 let ALL_DATA = [];
 
 // ===============================
-// EVENTOS UI (EMBED)
+// UI: EMBED
 // ===============================
 btnEmbed?.addEventListener("click", () => {
   const visible = !embedBox.hidden;
@@ -111,12 +115,19 @@ fetch(URL)
       return;
     }
 
-    // ❌ No mostrar el primer sorteo por defecto
+    // Render botones de últimos sorteos (sin buscador)
+    renderQuickSorteos(ALL_DATA, 8);
+
+    // Estado inicial: NO mostrar primer sorteo
     contenedor.innerHTML = "";
     embedBox.hidden = true;
     btnEmbed.disabled = true;
     btnEmbed.textContent = "Mostrar embed";
+    bannerTexto.textContent = "Selecciona un sorteo";
+    bannerMonto.textContent = "$0";
+    if (hint) hint.style.display = "block";
 
+    // Params: ?sorteo=XXXX&embed=1
     const params = new URLSearchParams(location.search);
     const sorteoParam = params.get("sorteo");
     const embedMode = params.get("embed") === "1";
@@ -126,12 +137,28 @@ fetch(URL)
     if (sorteoParam) {
       mostrarPorSorteo(sorteoParam);
       if (hint) hint.style.display = "none";
-    } else {
-      // Sin sorteo: solo hint
-      if (hint) hint.style.display = "block";
-      bannerTexto.textContent = "Selecciona un sorteo";
-      bannerMonto.textContent = "$0";
     }
+
+    // Soporta back/forward del navegador
+    window.addEventListener("popstate", () => {
+      const p = new URLSearchParams(location.search);
+      const s = p.get("sorteo");
+      const e = p.get("embed") === "1";
+      if (e) activarModoEmbed();
+
+      if (s) {
+        mostrarPorSorteo(s);
+        if (hint) hint.style.display = "none";
+      } else {
+        contenedor.innerHTML = "";
+        embedBox.hidden = true;
+        btnEmbed.disabled = true;
+        btnEmbed.textContent = "Mostrar embed";
+        bannerTexto.textContent = "Selecciona un sorteo";
+        bannerMonto.textContent = "$0";
+        if (hint) hint.style.display = "block";
+      }
+    });
   })
   .catch(err => {
     console.error(err);
@@ -152,8 +179,35 @@ function mostrarPorSorteo(sorteo) {
   } else {
     renderSinDatos(sId);
     renderBannerSinDatos(sId);
-    actualizarEmbed(sId);
+    actualizarEmbed(sId); // igual generamos embed para ese sorteo
   }
+}
+
+// ===============================
+// BOTONES RÁPIDOS (SIN BUSCADOR)
+// ===============================
+function renderQuickSorteos(data, n = 8) {
+  if (!quickSorteos) return;
+  const ultimos = data.slice(0, n);
+
+  quickSorteos.innerHTML = ultimos
+    .map(s => `<button type="button" data-sorteo="${s.sorteo}">Sorteo ${s.sorteo}</button>`)
+    .join("");
+
+  quickSorteos.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const sorteo = btn.getAttribute("data-sorteo");
+
+      mostrarPorSorteo(sorteo);
+      if (hint) hint.style.display = "none";
+
+      // Actualiza URL sin recargar
+      const params = new URLSearchParams(location.search);
+      params.set("sorteo", sorteo);
+      params.delete("embed");
+      history.pushState({}, "", `${location.pathname}?${params.toString()}`);
+    });
+  });
 }
 
 // ===============================
@@ -263,7 +317,7 @@ function renderSinDatos(sorteo) {
 function renderBanner(s) {
   bannerTexto.textContent = `Próximo Sorteo N° ${Number(s.sorteo) + 1}`;
 
-  // Si viene en pesos grandes, convierto a millones (heurística)
+  // Heurística: si viene en pesos grandes, convierto a millones
   const monto = s.monto || 0;
   const enMillones = monto >= 1_000_000 ? Math.round(monto / 1_000_000) : monto;
 
@@ -301,8 +355,10 @@ function activarModoEmbed() {
   const footer = document.querySelector("footer");
   if (footer) footer.style.display = "none";
 
-  // Oculta UI de embed dentro del iframe (solo resultados)
+  // En iframe mostramos solo resultados (sin UI extra)
   if (btnEmbed) btnEmbed.style.display = "none";
   if (embedBox) embedBox.style.display = "none";
   if (hint) hint.style.display = "none";
+  if (quickSorteos) quickSorteos.style.display = "none";
 }
+
