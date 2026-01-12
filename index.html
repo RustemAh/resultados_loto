@@ -1,10 +1,11 @@
+<!-- index.html (FINAL - sin buscador, con botones de sorteos recientes + embed como botón) -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <title>Resultados LOTO Chile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Resultados del Loto Chile. Consulta por sorteo usando la URL. Sitio informativo." />
+  <meta name="description" content="Resultados del Loto Chile. Consulta por sorteo usando la URL o botones de sorteos recientes. Sitio informativo." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -24,10 +25,11 @@
       Resultados oficiales del Loto de Polla Chilena de Beneficencia
     </p>
 
-    <!-- Botón embed -->
-    <button id="btnEmbed" type="button" disabled>
-      Mostrar embed
-    </button>
+    <!-- Embed como botón (habilita solo al seleccionar sorteo) -->
+    <button id="btnEmbed" type="button" disabled>Mostrar embed</button>
+
+    <!-- Botones rápidos (sin buscador) -->
+    <div id="quickSorteos" class="quick-sorteos"></div>
   </section>
 
   <!-- Caja embed (oculta por defecto) -->
@@ -41,8 +43,7 @@
   </section>
 
   <p class="hint" id="hint">
-    Para ver resultados, abre con <code>?sorteo=XXXX</code>.
-    Ejemplo: <code>?sorteo=5200</code>
+    También puedes abrir directo con <code>?sorteo=XXXX</code>. Ej: <code>?sorteo=5200</code>
   </p>
 
   <main id="resultados"></main>
@@ -56,4 +57,5 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
