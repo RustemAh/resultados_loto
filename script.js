@@ -1,3 +1,10 @@
+// script.js (FINAL)
+// - Mantiene selects (sorteo/fecha)
+// - NO muestra el primer sorteo al cargar
+// - Si seleccionas un sorteo sin datos => "Resultados a las 22:00 horas."
+// - Embed como botón en la web normal
+// - En modo embed (?embed=1): se VEN los selects, pero NO se ve el botón/embed box (solo para navegar resultados)
+
 // ===============================
 // CONFIGURACIÓN
 // ===============================
@@ -34,7 +41,7 @@ const hint = document.getElementById("hint");
 let ALL_DATA = [];
 
 // ===============================
-// UI: EMBED
+// UI: EMBED (solo en página normal)
 // ===============================
 btnEmbed?.addEventListener("click", () => {
   const visible = !embedBox.hidden;
@@ -124,22 +131,21 @@ fetch(URL)
     const sorteoParam = params.get("sorteo");
     const embedMode = params.get("embed") === "1";
 
-    if (embedMode) activarModoEmbed();
+    if (embedMode) activarModoEmbed(); // OJO: mantiene selects, oculta embed UI
 
     if (sorteoParam) {
       // precarga por URL
       selectSorteo.value = sorteoParam;
       aplicarFiltros();
+      if (hint) hint.style.display = "none";
     }
 
     // eventos
     selectSorteo.addEventListener("change", () => {
-      // si selecciona sorteo, aplicamos y sincronizamos fecha si existe
       aplicarFiltros();
     });
 
     selectFecha.addEventListener("change", () => {
-      // si selecciona fecha, aplicamos (muestra todos los sorteos de esa fecha)
       aplicarFiltros();
     });
   })
@@ -179,7 +185,7 @@ function aplicarFiltros() {
       return;
     }
 
-    // ✅ Sorto seleccionado pero no existe:
+    // ✅ Sorteo seleccionado pero no existe:
     renderSinDatos(sVal);
     renderBannerSinDatos(sVal);
     actualizarEmbed(String(sVal));
@@ -194,8 +200,9 @@ function aplicarFiltros() {
 
     if (!items.length) {
       contenedor.innerHTML = "<p>No hay datos para esa fecha.</p>";
-      btnEmbed.disabled = true;
       embedBox.hidden = true;
+      btnEmbed.disabled = true;
+      btnEmbed.textContent = "Mostrar embed";
       return;
     }
 
@@ -206,7 +213,7 @@ function aplicarFiltros() {
     actualizarEmbed(items[0].sorteo);
     if (hint) hint.style.display = "none";
 
-    // opcional: setea selectSorteo al más reciente de esa fecha (para consistencia)
+    // setea selectSorteo al más reciente de esa fecha
     selectSorteo.value = items[0].sorteo;
     pushUrl(items[0].sorteo);
   }
@@ -227,7 +234,8 @@ function limpiarVista() {
 function pushUrl(sorteo) {
   const params = new URLSearchParams(location.search);
   params.set("sorteo", sorteo);
-  params.delete("embed");
+  // mantenemos embed=1 si está activo
+  if (params.get("embed") !== "1") params.delete("embed");
   history.replaceState({}, "", `${location.pathname}?${params.toString()}`);
 }
 
@@ -369,13 +377,16 @@ function renderBannerSinDatos(sorteo) {
 // ===============================
 function actualizarEmbed(sorteo) {
   const base = `${location.origin}${location.pathname}`;
+
+  // Por defecto, el código generado es "embed con selects y sin UI de embed"
+  // => usa embed=1 (pero ojo: nuestro activarModoEmbed NO oculta selects)
   const src = `${base}?sorteo=${encodeURIComponent(sorteo)}&embed=1`;
 
   embedCode.value =
 `<iframe
   src="${src}"
   width="100%"
-  height="700"
+  height="1750"
   style="border:0;border-radius:12px;overflow:hidden"
   loading="lazy"
   referrerpolicy="no-referrer-when-downgrade"
@@ -383,18 +394,20 @@ function actualizarEmbed(sorteo) {
 
   btnEmbed.disabled = false;
   btnEmbed.textContent = "Mostrar embed";
-  embedBox.hidden = true; // queda cerrado hasta que el usuario lo abra
+  embedBox.hidden = true;
 }
 
+// ===============================
+// MODO EMBED (mantiene selects, oculta solo UI embed)
+// ===============================
 function activarModoEmbed() {
-  const buscador = document.querySelector(".buscador");
+  // ✅ Mantener los selects (NO ocultamos .buscador)
   const footer = document.querySelector("footer");
-  if (buscador) buscador.style.display = "none";
   if (footer) footer.style.display = "none";
 
-  // En iframe mostramos solo resultados (sin UI extra)
-  if (embedBox) embedBox.style.display = "none";
+  // ❌ Ocultar la UI de embed dentro del iframe
   if (btnEmbed) btnEmbed.style.display = "none";
+  if (embedBox) embedBox.style.display = "none";
   if (hint) hint.style.display = "none";
 }
 
