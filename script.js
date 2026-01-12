@@ -1,5 +1,3 @@
-// script.js (FINAL - sin buscador, selección por botones o por URL, embed como botón, sin mostrar primer sorteo)
-
 // ===============================
 // CONFIGURACIÓN
 // ===============================
@@ -21,6 +19,9 @@ const DISPLAY_NAME = {
 // DOM
 // ===============================
 const contenedor = document.getElementById("resultados");
+const selectSorteo = document.getElementById("selectSorteo");
+const selectFecha = document.getElementById("selectFecha");
+
 const bannerTexto = document.getElementById("bannerTexto");
 const bannerMonto = document.getElementById("bannerMonto");
 
@@ -28,8 +29,6 @@ const btnEmbed = document.getElementById("btnEmbed");
 const embedBox = document.getElementById("embedBox");
 const embedCode = document.getElementById("embedCode");
 const copyEmbed = document.getElementById("copyEmbed");
-
-const quickSorteos = document.getElementById("quickSorteos");
 const hint = document.getElementById("hint");
 
 let ALL_DATA = [];
@@ -115,17 +114,10 @@ fetch(URL)
       return;
     }
 
-    // Render botones de últimos sorteos (sin buscador)
-    renderQuickSorteos(ALL_DATA, 8);
+    cargarSelectores(ALL_DATA);
 
-    // Estado inicial: NO mostrar primer sorteo
-    contenedor.innerHTML = "";
-    embedBox.hidden = true;
-    btnEmbed.disabled = true;
-    btnEmbed.textContent = "Mostrar embed";
-    bannerTexto.textContent = "Selecciona un sorteo";
-    bannerMonto.textContent = "$0";
-    if (hint) hint.style.display = "block";
+    // ✅ Estado inicial: NO renderizar el primero
+    limpiarVista();
 
     // Params: ?sorteo=XXXX&embed=1
     const params = new URLSearchParams(location.search);
@@ -135,29 +127,20 @@ fetch(URL)
     if (embedMode) activarModoEmbed();
 
     if (sorteoParam) {
-      mostrarPorSorteo(sorteoParam);
-      if (hint) hint.style.display = "none";
+      // precarga por URL
+      selectSorteo.value = sorteoParam;
+      aplicarFiltros();
     }
 
-    // Soporta back/forward del navegador
-    window.addEventListener("popstate", () => {
-      const p = new URLSearchParams(location.search);
-      const s = p.get("sorteo");
-      const e = p.get("embed") === "1";
-      if (e) activarModoEmbed();
+    // eventos
+    selectSorteo.addEventListener("change", () => {
+      // si selecciona sorteo, aplicamos y sincronizamos fecha si existe
+      aplicarFiltros();
+    });
 
-      if (s) {
-        mostrarPorSorteo(s);
-        if (hint) hint.style.display = "none";
-      } else {
-        contenedor.innerHTML = "";
-        embedBox.hidden = true;
-        btnEmbed.disabled = true;
-        btnEmbed.textContent = "Mostrar embed";
-        bannerTexto.textContent = "Selecciona un sorteo";
-        bannerMonto.textContent = "$0";
-        if (hint) hint.style.display = "block";
-      }
+    selectFecha.addEventListener("change", () => {
+      // si selecciona fecha, aplicamos (muestra todos los sorteos de esa fecha)
+      aplicarFiltros();
     });
   })
   .catch(err => {
@@ -166,48 +149,86 @@ fetch(URL)
   });
 
 // ===============================
-// LÓGICA PRINCIPAL
+// FILTROS / CONTROL
 // ===============================
-function mostrarPorSorteo(sorteo) {
-  const sId = String(sorteo).trim();
-  const item = ALL_DATA.find(x => x.sorteo === sId);
+function aplicarFiltros() {
+  const sVal = selectSorteo.value;
+  const fVal = selectFecha.value;
 
-  if (item) {
-    render([item]);
-    renderBanner(item);
-    actualizarEmbed(item.sorteo);
-  } else {
-    renderSinDatos(sId);
-    renderBannerSinDatos(sId);
-    actualizarEmbed(sId); // igual generamos embed para ese sorteo
+  if (!sVal && !fVal) {
+    limpiarVista();
+    return;
+  }
+
+  // Si elige sorteo -> 1 resultado (o sin datos)
+  if (sVal) {
+    const item = ALL_DATA.find(x => x.sorteo === String(sVal));
+
+    if (item) {
+      // sincroniza fecha
+      selectFecha.value = item.fecha;
+
+      render([item]);
+      renderBanner(item);
+      actualizarEmbed(item.sorteo);
+      if (hint) hint.style.display = "none";
+
+      // actualiza URL (sin recargar)
+      pushUrl(item.sorteo);
+
+      return;
+    }
+
+    // ✅ Sorto seleccionado pero no existe:
+    renderSinDatos(sVal);
+    renderBannerSinDatos(sVal);
+    actualizarEmbed(String(sVal));
+    if (hint) hint.style.display = "none";
+    pushUrl(String(sVal));
+    return;
+  }
+
+  // Si NO hay sorteo pero hay fecha -> mostrar todos los sorteos de esa fecha
+  if (fVal) {
+    const items = ALL_DATA.filter(x => x.fecha === String(fVal));
+
+    if (!items.length) {
+      contenedor.innerHTML = "<p>No hay datos para esa fecha.</p>";
+      btnEmbed.disabled = true;
+      embedBox.hidden = true;
+      return;
+    }
+
+    render(items);
+    renderBanner(items[0]);
+
+    // embed del más reciente de esa fecha
+    actualizarEmbed(items[0].sorteo);
+    if (hint) hint.style.display = "none";
+
+    // opcional: setea selectSorteo al más reciente de esa fecha (para consistencia)
+    selectSorteo.value = items[0].sorteo;
+    pushUrl(items[0].sorteo);
   }
 }
 
-// ===============================
-// BOTONES RÁPIDOS (SIN BUSCADOR)
-// ===============================
-function renderQuickSorteos(data, n = 8) {
-  if (!quickSorteos) return;
-  const ultimos = data.slice(0, n);
+function limpiarVista() {
+  contenedor.innerHTML = "";
+  bannerTexto.textContent = "Selecciona un sorteo";
+  bannerMonto.textContent = "$0";
 
-  quickSorteos.innerHTML = ultimos
-    .map(s => `<button type="button" data-sorteo="${s.sorteo}">Sorteo ${s.sorteo}</button>`)
-    .join("");
+  embedBox.hidden = true;
+  btnEmbed.disabled = true;
+  btnEmbed.textContent = "Mostrar embed";
 
-  quickSorteos.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const sorteo = btn.getAttribute("data-sorteo");
+  if (hint) hint.style.display = "block";
+}
 
-      mostrarPorSorteo(sorteo);
-      if (hint) hint.style.display = "none";
-
-      // Actualiza URL sin recargar
-      const params = new URLSearchParams(location.search);
-      params.set("sorteo", sorteo);
-      params.delete("embed");
-      history.pushState({}, "", `${location.pathname}?${params.toString()}`);
-    });
-  });
+function pushUrl(sorteo) {
+  const params = new URLSearchParams(location.search);
+  params.set("sorteo", sorteo);
+  params.delete("embed");
+  history.replaceState({}, "", `${location.pathname}?${params.toString()}`);
 }
 
 // ===============================
@@ -253,6 +274,20 @@ function formatearFecha(f) {
 function normalizarMonto(m) {
   if (m === null || m === undefined || m === "") return 0;
   return Number(m.toString().replace(/[^\d]/g, "")) || 0;
+}
+
+// ===============================
+// SELECTORES
+// ===============================
+function cargarSelectores(data) {
+  const sorteos = [...new Set(data.map(x => x.sorteo))];
+  const fechas = [...new Set(data.map(x => x.fecha))];
+
+  selectSorteo.innerHTML = `<option value="">Selecciona sorteo</option>` +
+    sorteos.map(s => `<option value="${s}">${s}</option>`).join("");
+
+  selectFecha.innerHTML = `<option value="">Selecciona fecha</option>` +
+    fechas.map(f => `<option value="${f}">${f}</option>`).join("");
 }
 
 // ===============================
@@ -352,13 +387,14 @@ function actualizarEmbed(sorteo) {
 }
 
 function activarModoEmbed() {
+  const buscador = document.querySelector(".buscador");
   const footer = document.querySelector("footer");
+  if (buscador) buscador.style.display = "none";
   if (footer) footer.style.display = "none";
 
   // En iframe mostramos solo resultados (sin UI extra)
-  if (btnEmbed) btnEmbed.style.display = "none";
   if (embedBox) embedBox.style.display = "none";
+  if (btnEmbed) btnEmbed.style.display = "none";
   if (hint) hint.style.display = "none";
-  if (quickSorteos) quickSorteos.style.display = "none";
 }
 
